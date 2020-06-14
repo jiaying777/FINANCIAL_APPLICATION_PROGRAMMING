@@ -231,7 +231,9 @@ if __name__ == '__main__':
     chose = model()
     data = chose.first()
     data,symbolId = chose.first_four_conditions(data)
-    symbolId = chose.ma(symbolId)
+    symbolId2 = chose.ma(symbolId)
+    if symbolId2:
+        symbolId = symbolId2
     data = data.loc[symbolId]
     if len(symbolId) >= 5:
         data = chose.second(data)
