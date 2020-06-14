@@ -144,10 +144,10 @@ class model:
 
         return df
     
-    def kd(self,stock):
-        K,D = talib.STOCH(high = np.array(sdf['High'][stock+'.TW']), 
-                low = np.array(sdf['Low'][stock+'.TW']), 
-                close = np.array(sdf['Close'][stock+'.TW']),
+    def kd(self,df,stock):
+        K,D = talib.STOCH(high = np.array(df['High'][stock+'.TW']), 
+                low = np.array(df['Low'][stock+'.TW']), 
+                close = np.array(df['Close'][stock+'.TW']),
                 fastk_period=9,
                 slowk_period=3,
                 slowk_matype=0,
@@ -158,9 +158,9 @@ class model:
         k = pd.DataFrame(K)
         d = pd.DataFrame(D)
         j = pd.DataFrame(J)
-        k.index = sdf.index
-        d.index = sdf.index
-        j.index = sdf.index
+        k.index = df.index
+        d.index = df.index
+        j.index = df.index
         
         return k,d,j
 
@@ -183,7 +183,7 @@ class model:
             rsi5 = talib.RSI(df['Close'][stock+'.TW'].values, 5)
             rsi10 = talib.RSI(df['Close'][stock+'.TW'].values, 10)
             
-            k,d,j = self.kd(stock)
+            k,d,j = self.kd(df,stock)
             
             df.index = df.index.to_series().apply(lambda x: x.strftime('%Y-%m-%d'))
             
@@ -205,7 +205,7 @@ class model:
 
 
             ax2.plot(dif,label='DIF')
-            ax2.plot(dea,label='DEM')
+            ax2.plot(dem,label='DEM')
             ax2.fill_between(hist.index,0,hist,label='HIST')
             ax2.legend()
 
@@ -218,8 +218,8 @@ class model:
             ax4.plot(rsi10, label='RSI10')
             ax4.legend()
 
-            ax4.set_xticks(range(0, len(sdf.index),10))
-            ax4.set_xticklabels(sdf.index[::10])
+            ax4.set_xticks(range(0, len(df.index),10))
+            ax4.set_xticklabels(df.index[::10])
             plt.savefig('技術分析圖'+stock+'.png')
             plt.show()
 
