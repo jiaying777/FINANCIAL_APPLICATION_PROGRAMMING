@@ -7,6 +7,7 @@
 由於執行程式碼的時間不同，抓下來的殖利率可能是不同天的資料，所以最後篩出的公司跟上述14間公司可能會有些微的變動。
 '''
 
+__author__ = 'JiaYing Wu'
 import requests
 from bs4 import BeautifulSoup
 import pandas as pd
