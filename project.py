@@ -195,8 +195,8 @@ class model:
             ax3 = fig.add_axes([0.05,0.25,0.9,0.15])
             ax4 = fig.add_axes([0.05,0.1,0.9,0.15])
 
-            mpf.candlestick2_ochl(ax1, df['Open']['4137.TW'], df['Close']['4137.TW'], df['High']['4137.TW'],
-                                  df['Low']['4137.TW'], width=0.6, colorup='r', colordown='g', alpha=0.75)
+            mpf.candlestick2_ochl(ax1, df['Open'][stock+'.TW'], df['Close'][stock+'.TW'], df['High'][stock+'.TW'],
+                                  df['Low'][stock+'.TW'], width=0.6, colorup='r', colordown='g', alpha=0.75)
 
             ax1.plot(ma5.values,label='MA5')
             ax1.plot(ma10.values,label='MA10')
