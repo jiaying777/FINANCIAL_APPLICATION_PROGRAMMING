@@ -33,7 +33,7 @@ import mpl_finance as mpf
 class model:
     
     def __init__(self):
-        tej = pd.read_csv('2015-2019比率.csv')
+        tej = pd.read_csv('2015-2019.csv')
         tej.index = tej['代號']
         tej.drop(columns=['代號'],inplace=True)
         tej['來自營運之現金流量'] = tej['來自營運之現金流量'].apply(lambda x: int(x.replace(',','')) if type(x) == str else x)
