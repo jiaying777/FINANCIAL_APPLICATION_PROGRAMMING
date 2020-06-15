@@ -14,6 +14,9 @@ import datetime
 import time
 import talib
 import pandas_datareader.data as web
+import numpy as np
+import matplotlib.pyplot as plt
+import mpl_finance as mpf
 
 class model:
     
@@ -132,7 +135,7 @@ class model:
             if ma20 < float(get_stock_price):
                 if ma10 < float(get_stock_price):
                     if ma20 < ma10 : #黃金交叉
-                        output.append(stock)
+                        output.append(int(stock))
         return output
     
     def second(self,df):
@@ -140,7 +143,87 @@ class model:
             df = tejyear.loc[df.index][(tejyear.loc[df.index]['利息保障倍數'] > 5) & (tejyear.loc[df.index]['總資產週轉次數'] > 0.8)]
 
         return df
+    
+    def kd(self,df,stock):
+        K,D = talib.STOCH(high = np.array(df['High'][stock+'.TW']), 
+                low = np.array(df['Low'][stock+'.TW']), 
+                close = np.array(df['Close'][stock+'.TW']),
+                fastk_period=9,
+                slowk_period=3,
+                slowk_matype=0,
+                slowd_period=3,
+                slowd_matype=0)
+        J = np.array(3*D-2*K)
 
+        k = pd.DataFrame(K)
+        d = pd.DataFrame(D)
+        j = pd.DataFrame(J)
+        k.index = df.index
+        d.index = df.index
+        j.index = df.index
+        
+        return k,d,j
+
+    
+    def plot(self,symbolId):
+        start = datetime.datetime(2020,1, 1)
+        end = datetime.datetime.today()
+        for stock in symbolId:
+            stock = str(stock)
+            df = web.DataReader([stock+'.TW'], 'yahoo', start, end)
+            
+            ma5=talib.SMA(df['Close'][stock+'.TW'],timeperiod=5)
+            ma20=talib.SMA(df['Close'][stock+'.TW'],timeperiod=20)
+            ma10=talib.SMA(df['Close'][stock+'.TW'],timeperiod=10)
+            
+            dif, dem, hist = talib.MACD(df['Close'][stock+'.TW'])
+            ema12 = talib.EMA(df['Close'][stock+'.TW'], 12)
+            ema26 = talib.EMA(df['Close'][stock+'.TW'], 26)
+            
+            rsi5 = talib.RSI(df['Close'][stock+'.TW'].values, 5)
+            rsi10 = talib.RSI(df['Close'][stock+'.TW'].values, 10)
+            
+            k,d,j = self.kd(df,stock)
+            
+            df.index = df.index.to_series().apply(lambda x: x.strftime('%Y-%m-%d'))
+            
+            #畫圖
+            fig = plt.figure(figsize=(24, 16))
+            ax1 = fig.add_axes([0.05,0.55,0.9,0.4])
+            plt.title(stock,fontsize=25,fontweight='bold')
+            ax2 = fig.add_axes([0.05,0.4,0.9,0.15])
+            ax3 = fig.add_axes([0.05,0.25,0.9,0.15])
+            ax4 = fig.add_axes([0.05,0.1,0.9,0.15])
+
+            mpf.candlestick2_ochl(ax1, df['Open']['4137.TW'], df['Close']['4137.TW'], df['High']['4137.TW'],
+                                  df['Low']['4137.TW'], width=0.6, colorup='r', colordown='g', alpha=0.75)
+
+            ax1.plot(ma5.values,label='MA5')
+            ax1.plot(ma10.values,label='MA10')
+            ax1.plot(ma20.values,label='MA20')
+            ax1.legend()
+
+
+            ax2.plot(dif,label='DIF')
+            ax2.plot(dem,label='DEM')
+            ax2.fill_between(hist.index,0,hist,label='HIST')
+            ax2.legend()
+
+            ax3.plot(k.values, label='K')
+            ax3.plot(d.values, label='D')
+            ax3.plot(j.values, '--',label='J')
+            ax3.legend()
+
+            ax4.plot(rsi5, label='RSI5')
+            ax4.plot(rsi10, label='RSI10')
+            ax4.legend()
+
+            ax4.set_xticks(range(0, len(df.index),10))
+            ax4.set_xticklabels(df.index[::10])
+            plt.savefig('技術分析圖'+stock+'.png')
+            plt.show()
+
+            
 
         
 if __name__ == '__main__':
@@ -148,5 +231,9 @@ if __name__ == '__main__':
     data = chose.first()
     data,symbolId = chose.first_four_conditions(data)
     symbolId = chose.ma(symbolId)
-    print(symbolId) #最後篩出來的股票
-
+    data = data.loc[symbolId]
+    if len(symbolId) >= 5:
+        data = chose.second(data)
+        symbolId = list(data.index)
+    print(symbolId) #最後篩選出來的股票
+    chose.plot(symbolId)
