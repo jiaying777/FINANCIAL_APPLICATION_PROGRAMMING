@@ -1,12 +1,24 @@
 '''
-選出前五年(2017-2019)每股盈餘>0、營業利益率>0(代表公司有賺錢)、稅後淨利率>0、ROE>5%、負債比率>0、
-速動比率>0之公司，並於2019年再以營業活動現金流量(每年)>0、營收成長率(每年)>10%等做篩選。
+選出前五年(2015-2019)每股盈餘>0、營業利益率>0(代表公司有賺錢)、稅後淨利率>0、ROE>5%、負債比率>0、
+速動比率>100、營業活動現金流量(每年)>0之公司，並於2019年再以營收成長率(每年)>10%等做篩選。
+
 由於篩選出的公司過多，所以再根據：近五年來每年殖利率>2%、最新殖利率>近五年平均殖利率、最新殖利率>3%、2019全年EPS>2019所發放之現金股利，
-進一步篩選，希望能夠減少公司數，根據上述條件與 20200602 的殖利率（只要有新資料就會抓最新的資料），最後篩出的公司有14間，
-股票代碼分別為 [1227,2308,2748,3004,3036,3596,3617,4137,4438,4915,5284,5288,9938,9946]，
-由於執行程式碼的時間不同，抓下來的殖利率可能是不同天的資料，所以最後篩出的公司跟上述14間公司可能會有些微的變動。
+進一步篩選，希望能夠減少公司數，根據上述條件與 20200612 的殖利率（只要有新資料就會抓最新的資料），最後篩出的公司有4間，
+股票代碼分別為 [1227, 2395, 4137, 5288]，由於執行程式碼的時間不同，抓下來的殖利率是不同天的資料，
+所以最後篩出的公司跟上述4間公司可能會有些微的變動。
+
+若是篩出的公司大於等於5間公司，則在加上前五年(2015-2019)利息保障倍數>5、總資產週轉次數>0.8的公司。
+
+從基本面篩出的公司會在用技術面去分析，挑選較適合的推薦股票：
+
+１．股價(即時) ＞ 均線 MA10
+２．股價(即時) ＞ 均線 MA20
+３．均線 MA10 與均線 MA20 呈現黃金交叉
+
+最後篩出的股票為 ‘4137麗豐-KY’，再畫出今年技術面分析圖，以利使用者可利用技術面自行進一步判斷。
 '''
 
+__author__ = 'JiaYing Wu'
 import requests
 from bs4 import BeautifulSoup
 import pandas as pd
@@ -21,7 +33,7 @@ import mpl_finance as mpf
 class model:
     
     def __init__(self):
-        tej = pd.read_csv('2015-2019比率.csv')
+        tej = pd.read_csv('2015-2019.csv')
         tej.index = tej['代號']
         tej.drop(columns=['代號'],inplace=True)
         tej['來自營運之現金流量'] = tej['來自營運之現金流量'].apply(lambda x: int(x.replace(',','')) if type(x) == str else x)
@@ -112,9 +124,9 @@ class model:
                 
     def ma(self,symbolId):
         '''
-        １．股價　＞　均線 MA10
-        ２．股價　＞　均線 MA20
-        ３．均線 MA10　與　均線 MA20　呈現黃金交叉
+        １．股價(即時) ＞ 均線 MA10
+        ２．股價(即時) ＞ 均線 MA20
+        ３．均線 MA10 與 均線 MA20 呈現黃金交叉
         '''
         output=[]
         for stock in symbolId:
@@ -154,6 +166,7 @@ class model:
                 slowd_period=3,
                 slowd_matype=0)
         J = np.array(3*D-2*K)
+<<<<<<< HEAD
 
         k = pd.DataFrame(K)
         d = pd.DataFrame(D)
@@ -209,6 +222,63 @@ class model:
             ax2.fill_between(hist.index,0,hist,label='HIST')
             ax2.legend()
 
+=======
+
+        k = pd.DataFrame(K)
+        d = pd.DataFrame(D)
+        j = pd.DataFrame(J)
+        k.index = df.index
+        d.index = df.index
+        j.index = df.index
+        
+        return k,d,j
+
+    
+    def plot(self,symbolId):
+        start = datetime.datetime(2020,1, 1)
+        end = datetime.datetime.today()
+        for stock in symbolId:
+            stock = str(stock)
+            df = web.DataReader([stock+'.TW'], 'yahoo', start, end)
+            
+            ma5=talib.SMA(df['Close'][stock+'.TW'],timeperiod=5)
+            ma20=talib.SMA(df['Close'][stock+'.TW'],timeperiod=20)
+            ma10=talib.SMA(df['Close'][stock+'.TW'],timeperiod=10)
+            
+            dif, dem, hist = talib.MACD(df['Close'][stock+'.TW'])
+            ema12 = talib.EMA(df['Close'][stock+'.TW'], 12)
+            ema26 = talib.EMA(df['Close'][stock+'.TW'], 26)
+            
+            rsi5 = talib.RSI(df['Close'][stock+'.TW'].values, 5)
+            rsi10 = talib.RSI(df['Close'][stock+'.TW'].values, 10)
+            
+            k,d,j = self.kd(df,stock)
+            
+            df.index = df.index.to_series().apply(lambda x: x.strftime('%Y-%m-%d'))
+            
+            #畫圖
+            fig = plt.figure(figsize=(24, 16))
+            ax1 = fig.add_axes([0.05,0.55,0.9,0.4])
+            plt.title(stock,fontsize=25,fontweight='bold')
+            ax2 = fig.add_axes([0.05,0.4,0.9,0.15])
+            ax3 = fig.add_axes([0.05,0.25,0.9,0.15])
+            ax4 = fig.add_axes([0.05,0.1,0.9,0.15])
+
+            mpf.candlestick2_ochl(ax1, df['Open'][stock+'.TW'], df['Close'][stock+'.TW'], df['High'][stock+'.TW'],
+                                  df['Low'][stock+'.TW'], width=0.6, colorup='r', colordown='g', alpha=0.75)
+
+            ax1.plot(ma5.values,label='MA5')
+            ax1.plot(ma10.values,label='MA10')
+            ax1.plot(ma20.values,label='MA20')
+            ax1.legend()
+
+
+            ax2.plot(dif,label='DIF')
+            ax2.plot(dem,label='DEM')
+            ax2.fill_between(hist.index,0,hist,label='HIST')
+            ax2.legend()
+
+>>>>>>> b3334c57b85584d171b1d13767e5910b54c3aa36
             ax3.plot(k.values, label='K')
             ax3.plot(d.values, label='D')
             ax3.plot(j.values, '--',label='J')
@@ -230,10 +300,20 @@ if __name__ == '__main__':
     chose = model()
     data = chose.first()
     data,symbolId = chose.first_four_conditions(data)
+<<<<<<< HEAD
     symbolId = chose.ma(symbolId)
+=======
+    symbolId2 = chose.ma(symbolId)
+    if symbolId2:
+        symbolId = symbolId2
+>>>>>>> b3334c57b85584d171b1d13767e5910b54c3aa36
     data = data.loc[symbolId]
     if len(symbolId) >= 5:
         data = chose.second(data)
         symbolId = list(data.index)
     print(symbolId) #最後篩選出來的股票
+<<<<<<< HEAD
     chose.plot(symbolId)
+=======
+    chose.plot(symbolId)
+>>>>>>> b3334c57b85584d171b1d13767e5910b54c3aa36
