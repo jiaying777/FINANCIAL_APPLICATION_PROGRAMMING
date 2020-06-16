@@ -17,7 +17,6 @@
 
 最後篩出的股票為 ‘4137麗豐-KY’，再畫出今年技術面分析圖，以利使用者可利用技術面自行進一步判斷。
 '''
-
 __author__ = 'JiaYing Wu'
 import requests
 from bs4 import BeautifulSoup
@@ -151,6 +150,7 @@ class model:
         return output
     
     def second(self,df):
+        
         for tejyear in [tej_2015,tej_2016,tej_2017,tej_2018,tej_2019]:
             df = tejyear.loc[df.index][(tejyear.loc[df.index]['利息保障倍數'] > 5) & (tejyear.loc[df.index]['總資產週轉次數'] > 0.8)]
 
@@ -166,63 +166,6 @@ class model:
                 slowd_period=3,
                 slowd_matype=0)
         J = np.array(3*D-2*K)
-<<<<<<< HEAD
-
-        k = pd.DataFrame(K)
-        d = pd.DataFrame(D)
-        j = pd.DataFrame(J)
-        k.index = df.index
-        d.index = df.index
-        j.index = df.index
-        
-        return k,d,j
-
-    
-    def plot(self,symbolId):
-        start = datetime.datetime(2020,1, 1)
-        end = datetime.datetime.today()
-        for stock in symbolId:
-            stock = str(stock)
-            df = web.DataReader([stock+'.TW'], 'yahoo', start, end)
-            
-            ma5=talib.SMA(df['Close'][stock+'.TW'],timeperiod=5)
-            ma20=talib.SMA(df['Close'][stock+'.TW'],timeperiod=20)
-            ma10=talib.SMA(df['Close'][stock+'.TW'],timeperiod=10)
-            
-            dif, dem, hist = talib.MACD(df['Close'][stock+'.TW'])
-            ema12 = talib.EMA(df['Close'][stock+'.TW'], 12)
-            ema26 = talib.EMA(df['Close'][stock+'.TW'], 26)
-            
-            rsi5 = talib.RSI(df['Close'][stock+'.TW'].values, 5)
-            rsi10 = talib.RSI(df['Close'][stock+'.TW'].values, 10)
-            
-            k,d,j = self.kd(df,stock)
-            
-            df.index = df.index.to_series().apply(lambda x: x.strftime('%Y-%m-%d'))
-            
-            #畫圖
-            fig = plt.figure(figsize=(24, 16))
-            ax1 = fig.add_axes([0.05,0.55,0.9,0.4])
-            plt.title(stock,fontsize=25,fontweight='bold')
-            ax2 = fig.add_axes([0.05,0.4,0.9,0.15])
-            ax3 = fig.add_axes([0.05,0.25,0.9,0.15])
-            ax4 = fig.add_axes([0.05,0.1,0.9,0.15])
-
-            mpf.candlestick2_ochl(ax1, df['Open']['4137.TW'], df['Close']['4137.TW'], df['High']['4137.TW'],
-                                  df['Low']['4137.TW'], width=0.6, colorup='r', colordown='g', alpha=0.75)
-
-            ax1.plot(ma5.values,label='MA5')
-            ax1.plot(ma10.values,label='MA10')
-            ax1.plot(ma20.values,label='MA20')
-            ax1.legend()
-
-
-            ax2.plot(dif,label='DIF')
-            ax2.plot(dem,label='DEM')
-            ax2.fill_between(hist.index,0,hist,label='HIST')
-            ax2.legend()
-
-=======
 
         k = pd.DataFrame(K)
         d = pd.DataFrame(D)
@@ -278,7 +221,6 @@ class model:
             ax2.fill_between(hist.index,0,hist,label='HIST')
             ax2.legend()
 
->>>>>>> b3334c57b85584d171b1d13767e5910b54c3aa36
             ax3.plot(k.values, label='K')
             ax3.plot(d.values, label='D')
             ax3.plot(j.values, '--',label='J')
@@ -300,20 +242,12 @@ if __name__ == '__main__':
     chose = model()
     data = chose.first()
     data,symbolId = chose.first_four_conditions(data)
-<<<<<<< HEAD
-    symbolId = chose.ma(symbolId)
-=======
     symbolId2 = chose.ma(symbolId)
     if symbolId2:
         symbolId = symbolId2
->>>>>>> b3334c57b85584d171b1d13767e5910b54c3aa36
     data = data.loc[symbolId]
     if len(symbolId) >= 5:
         data = chose.second(data)
         symbolId = list(data.index)
     print(symbolId) #最後篩選出來的股票
-<<<<<<< HEAD
     chose.plot(symbolId)
-=======
-    chose.plot(symbolId)
->>>>>>> b3334c57b85584d171b1d13767e5910b54c3aa36
